@@ -1,0 +1,27 @@
+- name: 检查本地目录是否存在key
+  ansible.builtin.stat:
+    path: "{{ secret_key }}"
+  register: localhost_pulsar_key
+  become: false
+  delegate_to: localhost
+- name: 上传key
+  ansible.builtin.copy:
+    src: "{{ secret_key }}"
+    dest: "{{ workspace }}/{{ secret_key }}"
+  when: localhost_pulsar_key.stat.exists == true
+- name: 判断服务器是否存在key
+  ansible.builtin.stat:
+    path: "{{ workspace }}/{{ secret_key }}"
+  register: pulsar_key
+- name: 生成key
+  ansible.builtin.shell: 
+    cmd: |
+      bin/pulsar tokens create-secret-key --output {{ secret_key }}
+    chdir: "{{ workspace }}"  
+  when: pulsar_key.stat.exists == false 
+- name: 下载key
+  ansible.builtin.fetch:
+    src: "/opt/pulsar/jx3box.key"
+    dest: "{{ playbook_dir  }}/{{ secret_key }}"
+    flat: true
+  when: pulsar_key.stat.exists == true and localhost_pulsar_key.stat.exists == false

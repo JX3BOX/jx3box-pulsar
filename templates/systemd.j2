@@ -1,0 +1,10 @@
+[Unit]
+Description=Pulsar Service
+
+[Service]
+Type=simple
+ExecStart={{ workspace }}/bin/pulsar
+WorkingDirectory=/opt/pulsar
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+- name: 生成token
+  ansible.builtin.shell:
+    cmd: |
+      bin/pulsar tokens create --secret-key {{ secret_key }} --subject {{ username }}
+    chdir: "{{ workspace }}"
+  register: token
+- name: 打印token
+  ansible.builtin.debug:
+    msg: "{{ token.stdout }}"
+- name: 输出token到文件
+  ansible.builtin.shell:
+    cmd: |
+      echo "{{ token.stdout }}" > {{ username }}.token
+    chdir: "{{ workspace }}"
+- name: 下载token
+  ansible.builtin.fetch:
+    src: "{{ workspace }}/{{ username }}.token"
+    dest: "{{ playbook_dir }}/{{ username }}.token"
+    flat: true

@@ -1,0 +1,55 @@
+- name: 检查admin.token文件是否存在
+  ansible.builtin.stat:
+    path: "{{ workspace }}/admin.token"
+  register: admin_token_file
+  failed_when: admin_token_file.stat.exists == false
+- name: 读取admin.token文件内容作为变量
+  ansible.builtin.shell:
+    cmd: |
+      cat admin.token
+    chdir: "{{ workspace }}"
+  register: token
+- name: 备份
+  ansible.builtin.shell:
+    cmd: |
+      cp conf/standalone.conf conf/standalone.conf.$(date +%Y%m%d%H%M%S).bak
+      cp conf/client.conf conf/client.conf.$(date +%Y%m%d%H%M%S).bak
+    chdir: "{{ workspace }}"
+- name: 修改standalone.conf
+  ansible.builtin.replace:
+    path: "{{ workspace }}/{{ item.path }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.line }}"
+  with_items: 
+    - path: conf/standalone.conf
+      regexp: '^authenticationEnabled=false$'
+      line: 'authenticationEnabled=true'
+    - path: conf/standalone.conf
+      regexp: '^authenticationProviders=$'
+      line: 'authenticationProviders=org.apache.pulsar.broker.authentication.AuthenticationProviderToken'
+    - path: conf/standalone.conf
+      regexp: '^brokerClientAuthenticationPlugin=$'
+      line: 'brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken'
+    - path: conf/standalone.conf
+      regexp: '^brokerClientAuthenticationParameters=$'
+      line: 'brokerClientAuthenticationParameters=token:{{ token.stdout }}'
+    - path: conf/standalone.conf
+      regexp: '^tokenSecretKey=$'
+      line: 'tokenSecretKey={{ workspace }}/{{ secret_key }}'
+    - path: conf/standalone.conf
+      regexp: '^superUserRoles=$'
+      line: 'superUserRoles=admin'
+    - path: conf/standalone.conf
+      regexp: '^authorizationEnabled=$'
+- name: 修改client.conf
+  ansible.builtin.replace:
+    path: "{{ workspace }}/{{ item.path }}"
+    regexp: "{{ item.regexp }}"
+    replace:  "{{ item.line }}"
+  with_items: 
+    - path: conf/client.conf
+      regexp: '^authPlugin=$'
+      line: 'authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken'
+    - path: conf/client.conf
+      regexp: '^authParams=$'
+      line: 'authParams=token:{{ token.stdout }}'

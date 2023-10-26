@@ -1,0 +1,14 @@
+- name: 安装openjdk17
+  hosts: pulsar
+  become: true
+  tasks:
+    - name: 安装openjdk17
+      ansible.builtin.yum:
+        name: java-17-openjdk
+        state: present
+    - name: 检查java版本
+      ansible.builtin.shell: java -version
+      register: java_version
+    - name: 打印java版本
+      ansible.builtin.debug:
+        msg: "{{ java_version }}"

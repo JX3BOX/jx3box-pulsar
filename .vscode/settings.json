@@ -1,0 +1,17 @@
+{
+    "yaml.schemas": {
+        "https://ghproxy.com/https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible.json#/$defs/playbook": [
+            "*.playbook.yml"
+        ],
+        "https://ghproxy.com/https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible.json#/$defs/tasks": [
+            "*.task.yml",
+            "tasks/*.yml"
+        ],
+        "https://ghproxy.com/https://raw.githubusercontent.com/ansible/schemas/main/f/ansible-vars.json": [
+            "vars/*.yml",
+            "defaults/*.yml"
+        
+        ]
+    },
+    "ansible.python.interpreterPath": "/bin/python3.11"
+}

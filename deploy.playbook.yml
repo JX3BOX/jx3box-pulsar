@@ -1,0 +1,54 @@
+- name: Pulsar部署
+  hosts: pulsar
+  become: true
+  tasks:
+    - name: 准备工作目录
+      ansible.builtin.file:
+        path: "{{item}}"
+        state: directory
+      loop:
+        - "{{ workspace }}"
+    - name: 检查jdk版本
+      ansible.builtin.shell: java -version
+      register: java_version
+      failed_when: "'17' not in java_version.stderr"
+    - name: 检查pulsar是否已经下载完成
+      ansible.builtin.stat:
+        path: "{{ workspace }}/pulsar.tar.gz"
+      register: pulsar_download
+    - name: 下载源码
+      ansible.builtin.get_url:
+        url: "{{ pulsar_download_url }}"
+        dest: "{{ workspace }}/pulsar.tar.gz"
+      when: pulsar_download.stat.exists == false
+    - name: 解压源码
+      ansible.builtin.unarchive:
+        src: "{{ workspace }}/pulsar.tar.gz"
+        dest: "{{ workspace }}"
+        remote_src: true
+        extra_opts: [--strip-components=1]
+      when: pulsar_download.stat.exists == false
+    - name: 处理key
+      ansible.builtin.import_tasks:  tasks/key.task.yml
+      tags: key
+    - name: 生成token
+      ansible.builtin.import_tasks:  tasks/generate_token.task.yml
+      vars:
+        username: admin # 生成一个admin账户token
+      tags: token
+    - name: 修改配置文件
+      ansible.builtin.import_tasks:  tasks/modify_config.task.yml
+      tags: config
+    - name: 生成systemd文件
+      ansible.builtin.import_tasks:  tasks/generate_systemd.task.yml
+      tags: systemd
+    - name: 启动pulsar
+      ansible.builtin.systemd:
+        name: pulsar
+        state: started
+        enabled: yes
+      tags: start
+    - name: 检查pulsar是否启动成功
+      ansible.builtin.wait_for:
+        port: 8650
+        host: lcalhost
