@@ -6,7 +6,9 @@
 ansible_ssh_user=root
 # 如果已经在ansible.cfg配置了私钥，这里就不需要配置密码了
 ansible_ssh_pass=123456 
+# pulsar 安装目录
 workspace=/opt/pulsar
 pulsar_download_url=https://mirrors.tuna.tsinghua.edu.cn/apache/pulsar/pulsar-3.1.1/apache-pulsar-3.1.1-bin.tar.gz
+#pulsar_download_url=https://mirrors.tuna.tsinghua.edu.cn/apache/pulsar/pulsar-3.0.1/apache-pulsar-3.0.1-bin.tar.gz
 # 用于加密jwt的密钥 如果没有配置，会自动生成 只能填文件名
 secret_key=jx3box.key

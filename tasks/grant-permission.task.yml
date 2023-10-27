@@ -1,0 +1,17 @@
+- name: 授权
+  ansible.builtin.shell:
+    cmd: |
+      bin/pulsar-admin topics grant-permission \
+        --actions {{ actions }} \
+        --role {{ user }} \
+        {{ topic }} \
+    chdir: "{{ workspace }}"
+- name: 检查授权
+  ansible.builtin.shell:
+    cmd: |
+      bin/pulsar-admin topics permissions {{ topic }}
+    chdir: "{{ workspace }}"
+  register: result
+- name: "输出[{{ topic }}]授权结果"
+  ansible.builtin.debug:
+    msg: "{{ result.stdout }}"

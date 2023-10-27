@@ -41,6 +41,7 @@
       line: 'superUserRoles=admin'
     - path: conf/standalone.conf
       regexp: '^authorizationEnabled=$'
+      line: 'authorizationEnabled=true'
 - name: 修改client.conf
   ansible.builtin.replace:
     path: "{{ workspace }}/{{ item.path }}"

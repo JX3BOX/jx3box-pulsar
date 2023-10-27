@@ -1,0 +1,10 @@
+- name: 授权
+  hosts: pulsar
+  tasks:
+    - name: 授权
+      vars:
+        user: "pay.comments2"
+        topic: "persistent://jx3box/default/pay.comments"
+        actions: "produce,consume"
+      ansible.builtin.import_tasks: "tasks/grant-permission.task.yml"
+     

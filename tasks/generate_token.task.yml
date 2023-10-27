@@ -1,19 +1,18 @@
+- name: 检查服务器是否存在
+  ansible.builtin.stat:
+    path: "{{ workspace }}/users-token/{{ username }}.token"
+  register: server_token_file
+  
 - name: 生成token
+  when: server_token_file.stat.exists == false
   ansible.builtin.shell:
     cmd: |
-      bin/pulsar tokens create --secret-key {{ secret_key }} --subject {{ username }}
+      mkdir -p users-token
+      bin/pulsar tokens create --secret-key {{ secret_key }} --subject {{ username }} > users-token/{{ username }}.token
     chdir: "{{ workspace }}"
-  register: token
-- name: 打印token
-  ansible.builtin.debug:
-    msg: "{{ token.stdout }}"
-- name: 输出token到文件
-  ansible.builtin.shell:
-    cmd: |
-      echo "{{ token.stdout }}" > {{ username }}.token
-    chdir: "{{ workspace }}"
-- name: 下载token
+
+- name: 下载token111
   ansible.builtin.fetch:
-    src: "{{ workspace }}/{{ username }}.token"
-    dest: "{{ playbook_dir }}/{{ username }}.token"
+    src: "{{ workspace }}/users-token/{{ username }}.token"
+    dest: "{{ playbook_dir }}/users-token/{{ username }}.token"
     flat: true

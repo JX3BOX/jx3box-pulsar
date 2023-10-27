@@ -10,8 +10,3 @@
     group: root
     mode: 0644
   when: systemd_file.stat.exists == false
-- name: 重启pulsar
-  ansible.builtin.service:
-    name: pulsar
-    state: restarted
-    daemon_reload: yes

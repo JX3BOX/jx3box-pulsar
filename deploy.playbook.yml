@@ -2,6 +2,13 @@
   hosts: pulsar
   become: true
   tasks:
+    - name: Disable SELinux
+      ansible.posix.selinux:
+        state: disabled
+      failed_when: false
+      when: ansible_selinux.status != "disabled"
+      become: true
+      tags: selinux
     - name: 准备工作目录
       ansible.builtin.file:
         path: "{{item}}"
@@ -48,7 +55,14 @@
         state: started
         enabled: yes
       tags: start
-    - name: 检查pulsar是否启动成功
-      ansible.builtin.wait_for:
-        port: 8650
-        host: lcalhost
+    - name: 启动检查
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin tenants list
+        chdir: "{{ workspace }}"
+      register: pulsar_start
+      failed_when: "'public' not in pulsar_start.stdout"
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "{{ pulsar_start }}"
+      tags: debug

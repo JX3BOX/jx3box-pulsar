@@ -24,4 +24,4 @@
     src: "/opt/pulsar/jx3box.key"
     dest: "{{ playbook_dir  }}/{{ secret_key }}"
     flat: true
-  when: pulsar_key.stat.exists == true and localhost_pulsar_key.stat.exists == false
+  when: localhost_pulsar_key.stat.exists == false

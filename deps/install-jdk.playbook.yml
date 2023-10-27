@@ -2,6 +2,10 @@
   hosts: pulsar
   become: true
   tasks:
+    - name: 安装tar
+      ansible.builtin.yum:
+        name: tar
+        state: present
     - name: 安装openjdk17
       ansible.builtin.yum:
         name: java-17-openjdk

@@ -1,0 +1,25 @@
+- name: Pulsar部署
+  hosts: pulsar
+  become: true
+  tasks:
+    - name: 检查key是否存在
+      ansible.builtin.stat:
+        path: "{{ workspace }}/{{ secret_key }}"
+      register: key_file
+    - name: 上传key
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/{{ secret_key }}"
+        dest: "{{ workspace }}/{{ secret_key }}"
+        mode: 0600
+      when: key_file.stat.exists == false
+    - name: 本地是否存在
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/users-token/{{ user }}.token"
+      register: local_token_file
+      delegate_to: localhost
+      become: false
+    - name: 引入生成token的task
+      vars:
+        username: "{{ user }}"
+      ansible.builtin.import_tasks: "tasks/generate_token.task.yml"
+      when: local_token_file.stat.exists == false

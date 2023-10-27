@@ -1,0 +1,65 @@
+- name: 创建Topic
+  hosts: pulsar
+  become: true
+  vars:
+    tenants : "jx3box"
+    namespaces : "pay"
+    topics : "comments"
+    user: "pay.comments2" # 如果该值不为空那么将把该topic授权给该用户
+    actions: "produce,consume" # 授权的操作
+    # "persistent://{{ tenants }}/{{ namespaces }}/comments"
+  tasks:
+    - name: 检查当前tenant是否存在
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin tenants list | grep {{ tenants }}
+        chdir: "{{ workspace }}"
+      register: tenants_exist
+      failed_when: false
+    - name: 创建tenant
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin tenants create {{ tenants }} 
+        chdir: "{{ workspace }}" 
+      when: tenants_exist.stdout == ""
+    - name: 检查当前namespace是否存在
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin namespaces list {{ tenants }} | grep "{{ tenants }}/{{ namespaces }}"
+        chdir: "{{ workspace }}"
+      register: namespaces_exist
+      failed_when: false
+    - name: 创建namespace
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin namespaces create {{ tenants }}/{{ namespaces }}
+        chdir: "{{ workspace }}"
+      when: namespaces_exist.stdout == ""
+    - name: 检查当前topic是否存在
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin topics list {{ tenants }}/{{ namespaces }} | grep "{{ tenants }}/{{ namespaces }}/{{ topics }}"
+        chdir: "{{ workspace }}"
+      register: topics_exist
+      failed_when: false
+    - name: 创建topic
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin topics create persistent://{{ tenants }}/{{ namespaces }}/{{ topics }}
+        chdir: "{{ workspace }}"
+      when: topics_exist.stdout == ""
+    - name: 检查创建结果
+      ansible.builtin.shell:
+        cmd: |
+          bin/pulsar-admin topics list {{ tenants }}/{{ namespaces }}
+        chdir: "{{ workspace }}"
+      register: result
+    - name: 输出结果
+      ansible.builtin.debug:
+        msg: "{{ result.stdout }}"
+    - name: 授权
+      vars:
+        topic: "persistent://{{ tenants }}/{{ namespaces }}/{{ topics }}"
+      ansible.builtin.import_tasks: "tasks/grant-permission.task.yml"
+      when: user != ""
+    

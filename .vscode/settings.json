@@ -13,5 +13,5 @@
         
         ]
     },
-    "ansible.python.interpreterPath": "/bin/python3.11"
+    "ansible.python.interpreterPath": "/usr/bin/python3"
 }
